@@ -1,0 +1,96 @@
+//import the file system
+
+var fs = require("fs");
+
+//create a file
+const filePath = "./tasks.json";
+
+// define a comman line application the creates different object based on methode called in the cmd
+
+//first you have to load the task from the command
+
+const loadTasks = () => {
+  // read the file to make sure we are getting data
+  try {
+    // to read the file, you will have to use the fs.readyFileSync library with passing the file path, and it returns a data buffer
+    // you will need to convert the data buffer into a string
+    const dataBuffer = fs.readFileSync(filePath);
+
+    const dataJSON = dataBuffer.toString();
+    return JSON.parse(dataJSON); //convert the return dataJSON string to a parsed JSON Object
+  } catch (error) {
+    //if we got an error, return an empty array
+    return [];
+  }
+};
+
+//save the tasks recieved from the array
+const saveTasks = (tasks) => {
+  const dataJSON = JSON.stringify(tasks);
+  fs.writeFileSync(filePath, dataJSON);
+};
+
+// create a method to add the task that the Load JSON returned
+
+const addTask = (task) => {
+  const tasks = loadTasks();
+  tasks.push({ task });
+  saveTasks(tasks);
+  console.log("task add", task);
+};
+
+//read the list of items
+const listTasks = () => {
+  const tasks = loadTasks(); // all items in the array
+
+  //use a forEach to iterate through the items in the list and also add an index
+  tasks.forEach((task, index) => {
+    console.log(`${index} - ${task.task}`);
+  });
+};
+
+// Remove a task by its list index (1-based index)
+const removeTask = (indexToRemove) => {
+  const tasks = loadTasks();
+
+  // Convert 1-based user input (e.g., item #1) to 0-based array index
+  const arrayIndex = indexToRemove - 1;
+
+  // check for invalid input
+
+  if (arrayIndex < 0 || arrayIndex >= tasks.length || isNaN(arrayIndex)) {
+    console.log("Invalid task index.");
+    return;
+  }
+
+  // Filter out the element at the specified index
+  const updatedTasks = tasks.filter((_, index) => index !== arrayIndex);
+
+  saveTasks(updatedTasks);
+  console.log(`Task #${indexToRemove} removed.`);
+};
+
+//define the node command
+
+//this first array grabs the command
+
+const command = process.argv[2]; //grabs the command
+
+const argument = process.argv[3]; // grabs the value passed to the argument
+
+console.log(
+  `this the  command ${command}  and this is the argument ${argument}`,
+);
+
+if (command === "add") {
+  // this method will take an argument
+  addTask(argument);
+} else if (command === "list") {
+  // this method will past or print a list
+  listTasks();
+} else if (command === "remove") {
+  // this method will remove a task base on task id
+  removeTask(parseInt(argument));
+} else {
+  console.log("task not found");
+}
